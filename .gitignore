@@ -1,0 +1,12 @@
+# Ignore all .log files
+*.log
+
+# Ignore a specific file
+secrets.txt
+
+# Ignore a folder
+.vdnac/
+.trunk
+
+# Ignore all files in a specific directory
+/temp/*
