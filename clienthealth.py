@@ -2,7 +2,6 @@ import requests
 import json
 from rich import print
 import urllib3
-import time # Import time module for sleep functionality
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -17,23 +16,21 @@ headers = {
     'Accept': 'application/json'
 }
 
-response = requests.request("POST", url=f"{base_url}{endpoint_url}", headers=headers, data=payload, verify=False)
+# Get the token
+response = requests.post(url=f"{base_url}{endpoint_url}", headers=headers, data=payload, verify=False)
 
 try:
     response_json = response.json()
 except requests.exceptions.JSONDecodeError as e:
-    print(f"Failed to parse JSON: {e}")
-    print(f"Raw Response Text: {response.text}")
+    print(f"[red]Failed to parse JSON: {e}[/red]")
     exit(1)
 
-### Print the response and status code
-print(f"HTTP Status Code: {response.status_code}")
 Token = response_json.get('Token')
 if not Token:
-    print(f"[red]Token not found in response. Check API authentication.[/red]")
+    print("[red]Token not found! Exiting.[/red]")
     exit(1)
 
-print(f"[red]Token: {Token}")
+print(f"[green]Token acquired: {Token}[/green]")
 
 ####################### Get Client Health ###################
 req_headers = {
@@ -45,28 +42,40 @@ req_headers = {
 url = "https://10.10.20.85/dna/intent/api/v1"
 endpoint = "/client-health"
 
-response_clienthealth = requests.request("POST", url=f"{url}{endpoint}", headers=headers, verify=False)
-print(f"HTTP response_Clienthealth Status Code: {response_clienthealth.status_code}")
-response = response_clienthealth.json()
-print(json.dumps(response, indent=2))
+# Fetch client health
+response_clienthealth = requests.get(url=f"{url}{endpoint}", headers=req_headers, verify=False)
+if response_clienthealth.status_code != 200:
+    print(f"[red]Failed to fetch client health! HTTP {response_clienthealth.status_code}[/red]")
+    exit(1)
 
-###############Printing client health scores#############
-print(
-    f"Clients: {response['response'][0]['scoreDetail'][0]['clientCount']}")
+try:
+    client_health = response_clienthealth.json()
+    print("\n[red]Printing ALL the client-health raw Data in JSON format\n")
+    print(json.dumps(client_health, indent=2))
+except requests.exceptions.JSONDecodeError as e:
+    print(f"[red]Failed to parse Client Health JSON: {e}[/red]")
+    exit(1)
 
+####################### Process and Print Health Scores ###################
+print("\n[yellow]Client Health Scores:[/yellow]\n")
 
-scores = response['response'][0]['scoreDetail']
+if 'response' in client_health and len(client_health['response']) > 0:
+    score_details = client_health['response'][0].get('scoreDetail', [])
 
-for score in scores:
-    if score['scoreCategory']['value'] == 'WIRED':
-        print(f"Wired Clients: {score['clientCount']}")
-        score_values = score['scoreList']
-        for score_value in score_values:
-            print(
-                f"  {score_value['scoreCategory']['value']}: {score_value['clientCount']}")
-    elif score['scoreCategory']['value'] == 'WIRELESS':
-        print(f"Wireless Clients: {score['clientCount']}")
-        score_values = score['scoreList']
-        for score_value in score_values:
-            print(
-                f"  {score_value['scoreCategory']['value']}: {score_value['clientCount']}")
+    for score in score_details:
+        client_type = score['scoreCategory']['value']  # ALL, WIRED, WIRELESS
+        client_count = score.get('clientCount', 0)
+
+        print(f"[green]Client Type:[/green] {client_type} [blue]Client Count:[/blue] {client_count}")
+
+        # Process scoreList if it exists
+        score_list = score.get('scoreList', [])
+        if score_list:
+            print(f"  [yellow]Score Breakdown for {client_type}:[/yellow]")
+            for detail in score_list:
+                score_value = detail['scoreCategory']['value']  # POOR, FAIR, GOOD, etc.
+                count = detail.get('clientCount', 0)
+                print(f"    {score_value}: {count}")
+else:
+    print("[red]No client health data found.[/red]")
+

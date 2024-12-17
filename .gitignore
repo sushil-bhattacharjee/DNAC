@@ -6,7 +6,8 @@ secrets.txt
 
 # Ignore a folder
 .vdnac/
-.trunk
+.trunk/
+.vscode/
 
 # Ignore all files in a specific directory
 /temp/*
