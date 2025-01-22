@@ -3,4 +3,7 @@ types-requests>=2.31.0
 rich>=13.7.0
 urllib3>=2.2.0 
 pyyaml>=6.0.1
+types-PyYAML>=6.0.12
 mypy>=1.8.0
+python-dotenv>=1.0.0
+types-PyYAML
