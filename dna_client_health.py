@@ -81,10 +81,28 @@ class DNACenterClientHealth:
     def get_wireless_score(self, client_health):
         """Get wireless score from client health statistics"""
         for site in client_health.get("response", []):
-            for detail in site.get("scoreDetail", []):
-                if detail["scoreCategory"].get("value") == "WIRELESS":
-                    return detail.get("scoreValue", "No scoreVlaue found")
+            for scoredetail in site.get("scoreDetail", []):
+                if scoredetail["scoreCategory"].get("value") == "WIRELESS":
+                    return scoredetail.get("scoreValue", "No scoreVlaue found")
         return "No WIRELESS category found"
+    # Get DHCP client count from client health statistics
+    def get_dhcp_client_count(self, client_health):
+        """Get DHCP client count from client health statistics."""
+        for site in client_health.get("response", []):
+            for scoredetail in site.get("scoreDetail", []):
+                # Check top-level scoreDetail
+                if scoredetail["scoreCategory"].get("value") == "DHCP":
+                    return scoredetail.get("clientCount", "No clientCount found")
+                # Check nested scoreList
+                for sub_score in scoredetail.get("scoreList", []):
+                    if sub_score["scoreCategory"].get("value") == "DHCP":
+                        return sub_score.get("clientCount", "No clientCount found")
+                    # Check deeper nested scoreList
+                    for sub_sub_score in sub_score.get("scoreList", []):
+                        if sub_sub_score["scoreCategory"].get("value") == "DHCP":
+                            return sub_sub_score.get("clientCount", "No clientCount found")
+        return "No DHCP category found"
+
 
 
 def main():
@@ -97,6 +115,9 @@ def main():
         # Get and print the WIRELESS score
         wireless_score = dnac.get_wireless_score(client_health)
         console_print(f"\n [bold yellow]WIRELESS Score: {wireless_score}[/bold yellow] \n")
+        # Get and print the DHCP client count
+        dhcp_client_count = dnac.get_dhcp_client_count(client_health)
+        console_print(f"\n [bold green]DHCP Client Count: {dhcp_client_count}[/bold green] \n")
     else:
         console_print("Failed to retrieve client health data")
 
