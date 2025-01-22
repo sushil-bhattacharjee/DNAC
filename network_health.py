@@ -1,33 +1,39 @@
+# trunk-ignore-all(black)
 import requests
 import json
 from rich import print
 import urllib3
 from requests.exceptions import Timeout
-
+import yaml
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #######################Code to get the Token ###################
-base_url = "https://10.10.20.85/api"
-endpoint_url = "/system/v1/auth/token"
+# Base URL and Endpoint
+base_url = "https://sandboxdnac2.cisco.com/dna/"
+endpoint_url = "system/api/v1/auth/token"
 
-
-payload = ""
+# Headers
 headers = {
-  'content-type': 'application/json',
-  'Authorization': 'Basic YWRtaW46Q2lzY28xMjM0IQ==',
-  'Accept': 'application/json'
+    'content-type': 'application/json',
+    'Authorization': "Basic ZGV2bmV0dXNlcjpDaXNjbzEyMyE="  # Replace with your valid token
 }
 
-response = requests.request("POST", url=f"{base_url}{endpoint_url}", headers=headers, data=payload, verify=False)
-response_json = response.json()
+# Make the Request
+response = requests.post(f"{base_url}{endpoint_url}", headers=headers, verify=False)
 
-###Print the response and status code
-# print(response.text)
+# Print the Response Data Type
+print(f"Response Data Type: {type(response.text)}")
+
+# Debugging the Response
 print(f"HTTP Status Code: {response.status_code}")
-
-###Print the response as json
-# print(json.dumps(response_json, indent=2))
+try:
+    response_json = response.json()
+    print(f"JSON Data Type for response_json(): {type(response_json)}")
+    print(json.dumps(response_json, indent=2))
+except requests.exceptions.JSONDecodeError:
+    print("The response is not valid JSON.")
+    print(f"Raw Response: {response.text}")
 Token = response_json['Token']
 print(f"[red]Token: {Token}")
 
@@ -38,11 +44,27 @@ req_headers = {
   'x-auth-token': Token
 }
 
-dnac_url = "https://10.10.20.85"
-NETWORK_HEALTH = '/dna/intent/api/v1/network-health'
-response = requests.get(dnac_url + NETWORK_HEALTH, headers=req_headers, verify=False)
-print("\n [blue]Printing the Netowrk-Health \n")
+
+NETWORK_HEALTH = 'intent/api/v1/network-health'
+response = requests.get(base_url + NETWORK_HEALTH, headers=req_headers, verify=False, timeout=30)
+print("\n [blue]Printing the Network-Health in HTTPs response str\n")
 print(json.dumps(response.json(), indent=2))
-network_health = response.json()['response']
-print("\n [red]Network_health as filtered summary \n")
-print('Good: {0}, Bad: {1}, Health score: {2}'.format(network_health[0]['goodCount'], network_health[0]['badCount'],network_health[0]['healthScore']))
+# Print response in YAML format
+print("\n[bold yellow]Response in YAML format:")
+print(yaml.dump(response.json(), default_flow_style=False, sort_keys=False))
+
+# Filter the response to get the network health summary 
+#network_health = response.json()['response'] 
+# #or the following
+network_health = json.loads(response.text)
+
+# Filter the response to get the healthDistribution for catergory Core
+print("\n [bold yellow]HealthDistribution for catergory Core \n")
+network_health = response.json()
+for healthDist in network_health['healthDistirubution']:
+    if healthDist['category'] == 'Core':
+        print(json.dumps(healthDist, indent=2))
+        print("\n [bold blue] Printing healthscore for Category=Core\n")
+        print(healthDist['healthScore'])
+        
+
