@@ -3,6 +3,8 @@
 
 # Ignore a specific file
 secrets.txt
+.env
+
 
 # Ignore a folder
 .vdnac/
