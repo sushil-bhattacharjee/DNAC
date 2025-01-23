@@ -2,6 +2,7 @@
 import json
 import os
 import base64
+import sys
 import requests
 from dotenv import load_dotenv
 from rich import print as console_print
@@ -44,7 +45,7 @@ def create_dnac_token():
         return Token
     except Exception as e:
         if str(response.status_code.codes.SERVER_ERROR) in str(e):
-        sys.exit("DNAC Service is not available")
+            sys.exit("DNAC Service is not available")
 
 ####################### Get Network Devices ###################
 def get_dnac_devices(auth_token, base_url):
