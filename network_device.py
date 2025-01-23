@@ -21,26 +21,30 @@ def create_dnac_token():
     Returns:
         str: Authentication token from DNA Center
     """
-    endpoint_url = "/api/system/v1/auth/token"
-    credentials = f"{os.getenv('DNAC_USERNAME')}:{os.getenv('DNAC_PASSWORD')}"
-    encoded_credentials = base64.b64encode(credentials.encode()).decode()
-    headers = {
-        'content-type': 'application/json',
-        'Authorization': f"Basic {encoded_credentials}", 
-        'Accept': 'application/json'
-    }
-    response = requests.post(
-        url=f"{BASE_URL}{endpoint_url}", 
-        headers=headers, 
-        verify=False, 
-        timeout=30
-    )  # nosec
-    response_json = response.json()
+    try:
+        endpoint_url = "/api/system/v1/auth/token"
+        credentials = f"{os.getenv('DNAC_USERNAME')}:{os.getenv('DNAC_PASSWORD')}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        headers = {
+            'content-type': 'application/json',
+            'Authorization': f"Basic {encoded_credentials}", 
+            'Accept': 'application/json'
+        }
+        response = requests.post(
+            url=f"{BASE_URL}{endpoint_url}", 
+            headers=headers, 
+            verify=False, 
+            timeout=30
+        )  # nosec
+        response_json = response.json()
 
-    console_print(f"HTTP Status Code: {response.status_code}")
-    Token = response_json['Token']
-    console_print(f"[red]Token: {Token}")
-    return Token
+        console_print(f"HTTP Status Code: {response.status_code}")
+        Token = response_json['Token']
+        console_print(f"[red]Token: {Token}")
+        return Token
+    except Exception as e:
+        if str(response.status_code.codes.SERVER_ERROR) in str(e):
+        sys.exit("DNAC Service is not available")
 
 ####################### Get Network Devices ###################
 def get_dnac_devices(auth_token, base_url):
