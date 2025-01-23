@@ -1,3 +1,4 @@
+"""Module for retrieving wireless health statistics from Cisco DNA Center sites."""
 import json
 import os
 import requests
@@ -18,6 +19,6 @@ console_print(response.json())
 if response.status_code == 200:
     site_response = response.json()['response']
     for site in site_response:
-        console_print('{}: {}'.format(site['siteName'], site['networkHealthWireless']))
+        console_print(f"{site['siteName']}: {site['networkHealthWireless']}")
 else:
     console_print(response.status_code, response.text)
