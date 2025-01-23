@@ -1,6 +1,8 @@
+"""Module for checking FlexConnect status in Cisco DNA Center wireless profiles."""
+import os
+import sys
 import requests
 import urllib3
-import sys
 from rich import print as console_print
 
 urllib3.disable_warnings()
@@ -23,7 +25,7 @@ def create_dnac_token():
         url = "https://sandboxdnac2.cisco.com/dna/system/api/v1/auth/token"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": "Basic ZGV2bmV0dXNlcjpDaXNjbzEyMyE="
+            "Authorization": f"Basic {os.getenv('DNAC_USERNAME')}:{os.getenv('DNAC_PASSWORD')}"
         }
         response = requests.post(url, headers=headers, verify=False, timeout=30)  # nosec
         return response.json()["Token"]
