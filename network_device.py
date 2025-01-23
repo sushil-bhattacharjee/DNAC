@@ -87,7 +87,6 @@ def create_dnac_token():
     except Exception as e:
         if str(response.status_code.codes.SERVER_ERROR) in str(e):
             sys.exit("DNAC Service is not available")
-        raise
 
 if __name__ == "__main__":
     token = create_dnac_token()
