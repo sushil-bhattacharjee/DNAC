@@ -1,9 +1,13 @@
 """Module for retrieving wireless health statistics from Cisco DNA Center sites."""
 import json
 import os
+from dotenv import load_dotenv
 import requests
 import urllib3
 from rich import print as console_print
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -26,7 +30,7 @@ page_size = 3
 total_pages = (len(sites) + page_size - 1) // page_size
 
 # Print first page only
-first_page = sites[0:page_size]
+first_page = sites[:page_size]  # Simpler slice notation when starting from beginning
 console_print(f"\nPage 1 of {total_pages}:")
 console_print(json.dumps(first_page, indent=2))
 
