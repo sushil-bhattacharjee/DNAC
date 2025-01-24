@@ -46,6 +46,12 @@ for healthDist in network_health['healthDistirubution']:
     if healthDist['category'] == 'Core':
         print(json.dumps(healthDist, indent=2))
         break
+    
+#################### print goodCount, badCount, totalCount, healthScore under network-health[0]
+print("\nGood Count, Bad Count, Total Count, Health Score\n")
+if response.status_code == 200:
+    network_health = response.json()['response']
+    print('Good: {0}, Bad: {1}, Health Score: {2}'.format(network_health[0]['goodCount'], network_health[0]['badCount'], network_health[0]['healthScore']))
 ######################## Get the Site Health | /intent/api/v1/site-health   for networkHealthWireless #######################
 # Get the Site Health | python simple_dnac_api.py "SiteName" | python simple_dnac_api.py "SanJose"
 # replace 'networkHealthSwitch' with 'networkHealthWireless' if data is avilable
@@ -72,7 +78,7 @@ if rc.status_code == requests.codes['ok']:
     print('The request was successful!')
 else:
     print(f'Error Code: {rc.status_code} : {rc.reason}')
-################# client-health | /intent/api/v1/cleint-health for scoreCategory ########################################
+################# client-health | /intent/api/v1/cleint-health for scoreCategory WIRELESS #######################
 
 print("\n[bold]Client Health\n")
 """
